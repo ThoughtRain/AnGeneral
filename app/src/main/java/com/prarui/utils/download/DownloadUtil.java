@@ -1,10 +1,26 @@
 package com.prarui.utils.download;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+
+import com.prarui.utils.common.TagLog;
+
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 
 /**
@@ -14,97 +30,43 @@ import java.io.IOException;
 
 public class DownloadUtil {
     //直接切换回主线程；
-    private boolean isFinish = false;
-    private Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message message) {
-            switch (message.what) {
-                case 0:
-                    if (null != listener) {
-                        listener.onDownloadFailed();
-                    }
-                    break;
-                case 1:
-                    if (null != listener) {
-                        listener.onDownloading(message.arg1);
-                    }
-                    break;
-                case 2:
-                    if (null != listener) {
-                        listener.onDownloadSuccess();
-                    }
-
-                    break;
-
-            }
-            return false;
-        }
-    });
+    private DownloadService downloadService;
+    private ServiceConnection mSc;
     private static DownloadUtil downloadUtil;
-
     public static DownloadUtil get() {
         if (downloadUtil == null) {
             downloadUtil = new DownloadUtil();
         }
         return downloadUtil;
     }
+    public void init(Context context){
+        Intent service = new Intent(context,DownloadService.class);
+        mSc = new ServiceConnection(){
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                TagLog.d( "service connected");
+                downloadService = ((DownloadService.DownloadBinder)service).getDownloadService();
+            }
 
-
-    public void setOnDownloadListener(OnDownloadListener listener) {
-        this.listener = listener;
-
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                TagLog.d(  "service disconnected");
+            }
+        };
+        context.bindService(service, mSc, Context.BIND_AUTO_CREATE);
     }
-    public void starDownload(){
-
-    }
-
-    private OnDownloadListener listener;
-
-    /**
-     * @param url     下载连接
-     * @param saveDir 储存下载文件的SDCard目录
-     */
+    public void starDownload(String url,final String saveDir,DownloadService.OnDownloadListener listener){
+      if(url==null){
+         return;
+       }
+        downloadService.startDownloadForService(url,saveDir,listener);
 
 
-    /**
-     * @param saveDir
-     * @return
-     * @throws IOException 判断下载目录是否存在
-     */
-    private String isExistDir(String saveDir) throws IOException {
-        // 下载位置
-        File downloadFile = new File(Environment.getExternalStorageDirectory(), saveDir);
-        if (!downloadFile.mkdirs()) {
-            downloadFile.createNewFile();
-
-        }
-        String savePath = downloadFile.getAbsolutePath();
-        return savePath;
     }
 
 
-    /**
-     * @param url
-     * @return 从下载连接中解析出文件名
-     */
-    private String getNameFromUrl(String url) {
-        return url.substring(url.lastIndexOf("/") + 1);
+    public  void removeService(Context context){
+        context.unbindService(mSc);
     }
 
-    public interface OnDownloadListener {
-        /**
-         * 下载成功
-         */
-        void onDownloadSuccess();
-
-        /**
-         * @param progress 下载进度
-         */
-        void onDownloading(int progress);
-
-        /**
-         * 下载失败
-         */
-        void onDownloadFailed();
-    }
 }

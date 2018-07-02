@@ -1,4 +1,4 @@
-package com.prarui.utils.system;
+package com.prarui.utils.network;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
