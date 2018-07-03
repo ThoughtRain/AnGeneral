@@ -7,10 +7,9 @@ import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.hm.tranlateprovider.constant.Constants;
-import com.hm.tranlateprovider.utils.AnalyzeJson;
-import com.hm.tranlateprovider.utils.GsonUtils;
-import com.hm.tranlateprovider.utils.TagLog;
+
+import com.prarui.utils.common.TagLog;
+import com.prarui.utils.json.GsonUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -39,6 +38,10 @@ public class OkHttpManager {
     private static final String SUCCEED = "succeed";
     private static OkHttpClient mOkHttpClient = null;
     private static HashMap<String, Call> map = new HashMap<>();
+    private static final int REQUEST_CODE_ERROR=0;
+    private static final int REQUEST_CODE_SUCCEED=1;
+    private static final int REQUEST_CODE_LOADING=2;
+    private static final int REQUEST_CODE_COMPLETE=3;
 
 
     public static void build() {
@@ -224,30 +227,45 @@ public class OkHttpManager {
     }
 
     //返回结果
-    private void getNetWorkData(String tag, final Request request, OnOkHttpResultCallbackListener listener) {
+    private void getNetWorkData(String tag, final Request request, final OnOkHttpResultCallbackListener listener) {
+        final Handler handler=new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message message) {
+                switch (message.what){
+                    case 0:
+                        Bundle data = message.getData();
+                        String error = data.getString(ERROR);
+                        if (null != listener) {
+                            listener.onError(error);
+                        }
 
-        Handler handler = new Handler(message -> {
-            switch (message.what) {
-                case 0:
-                    Bundle data = message.getData();
-                    String error = data.getString(ERROR);
-                    if (null != listener) {
-                        listener.onError(error);
-                    }
+                        break;
+                    case 1:
+                        Bundle bundle = message.getData();
+                        String json = bundle.getString(SUCCEED);
+                        if (null != listener) {
+                            listener.onResponseSucceed(json);
+                        }
+                        break;
+                    case 2:
+                          if(null!=listener){
+                              listener.onLoading();
+                             }
+                        break;
+                        case 3:
+                            if(null!=listener){
+                                listener.onComplete();
+                            }
+                            break;
 
-                    break;
-                case 1:
-                    Bundle bundle = message.getData();
-                    String json = bundle.getString(SUCCEED);
-                    if (null != listener) {
-                        listener.onResponseSucceed(json);
-                    }
-                    break;
+                }
+
+                return false;
             }
-
-            return false;
         });
-        Call call = mOkHttpClient.newCall(request);
+
+        handler.sendEmptyMessage(2);
+        final Call call = mOkHttpClient.newCall(request);
         map.put(tag, call);
         call.enqueue(new Callback() {
             @Override
@@ -294,6 +312,16 @@ public class OkHttpManager {
 
     //返回接口
     public interface OnOkHttpResultCallbackListener {
+        /**
+         * 请求中；
+         */
+        void onLoading();
+
+        /**
+         * 请求完成
+         */
+
+        void onComplete();
 
         /**
          * 返回的错误
