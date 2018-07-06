@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
+import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -42,9 +43,8 @@ public class OkHttpManager {
     private static final int REQUEST_CODE_SUCCEED=1;
     private static final int REQUEST_CODE_LOADING=2;
     private static final int REQUEST_CODE_COMPLETE=3;
-
-
-    public static void build() {
+    private static OkHttpConfig.Builder config=null;
+    private static void build() {
         if (null == mOkHttpClient) {
             mOkHttpClient = new OkHttpClient.Builder()
                     .readTimeout(30, TimeUnit.SECONDS)
@@ -55,6 +55,19 @@ public class OkHttpManager {
         }
     }
 
+    /**
+     * 键值对和token的key
+     * @param pram
+     * @param tokenName
+     */
+    public static void build(Map<String,String> pram,String tokenName){
+         build();
+        OkHttpManager.config=new OkHttpConfig.Builder().addHeader(pram).setToken(tokenName);
+    }
+    public static void build(Map<String,String> pram){
+        build();
+        OkHttpManager.config=new OkHttpConfig.Builder().addHeader(pram).setToken("token");
+    }
     /**
      * post请求方式
      **/
@@ -79,7 +92,6 @@ public class OkHttpManager {
         //API 14以下的处理
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
         String get_url = url;
         if (params == null) {
             params = new HashMap<>();
@@ -99,20 +111,24 @@ public class OkHttpManager {
 
         //请求体
         Request request;
+        Request.Builder getbuilder;
         if (TextUtils.isEmpty(token)) {
-            request = new Request.Builder()
+            getbuilder = new Request.Builder()
                     .url(get_url)
-                    .get()
-                    .addHeader(Constants.F.USER_TYPE, 1 + "")
-                    .build();
+                    .get();
+            if(config!=null){
+            getbuilder.headers(config.build());
+            }
+            request=getbuilder.build();
         } else {
-            request = new Request.Builder()
-                    .url(get_url)
+            getbuilder = new Request.Builder().url(get_url)
                     .get()
-                    .header("token", token)
-                    .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                    .addHeader(Constants.sF.USER_TYPE, 1 + "")
-                    .build();
+                    .addHeader("Content-Type", "application/x-www-form-urlencoded");
+                    if(config!=null){
+                        config.addHeader(config.getToken(),token);
+                        getbuilder.headers(config.build());
+                      }
+                      request=getbuilder.build();
         }
 
         if (NetWorkUtils.isOpenNetwork()) {
@@ -121,9 +137,7 @@ public class OkHttpManager {
             listener.onError("网络错误，请检查你的网络");
         }
     }
-
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
     public void setPostRequest(String tag, String url, String token, HashMap<String, String> params, OnOkHttpResultCallbackListener listener) {
         //API 14以下的处理
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -136,7 +150,6 @@ public class OkHttpManager {
         for (Map.Entry<String, String> map : params.entrySet()) {
             String key = map.getKey().toString();
             String value = null;
-
             //判断值是否是空的
             if (map.getValue() == null) {
                 value = "";
@@ -144,27 +157,30 @@ public class OkHttpManager {
                 value = map.getValue();
             }
 
-//     把key和value添加到formbody中
             builder.add(key, value);
         }
-        // requestBody = builder.build();
         String json = GsonUtils.toJson(params);
         RequestBody requestBody = RequestBody.create(JSON, json);
         Request request;
+        Request.Builder postbuilder;
         if (token == null) {
-            request = new Request.Builder()
+            postbuilder = new Request.Builder()
                     .url(url)
-                    .post(requestBody)
-                    .addHeader(Constants.F.USER_TYPE, 1 + "")
-                    .build();
+                    .post(requestBody);
+               if(config!=null){
+                postbuilder.headers(config.build());
+                          }
+                   request=postbuilder.build();
         } else {
-            request = new Request.Builder()
+            postbuilder = new Request.Builder()
                     .url(url)
-                    .header("token", token)
                     .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                    .addHeader(Constants.F.USER_TYPE, 1 + "")
-                    .post(requestBody)
-                    .build();
+                    .post(requestBody);
+                    if(config!=null){
+                        config.addHeader(config.getToken(),token);
+                        postbuilder.headers(config.build());
+                     }
+                 request= postbuilder.build();
         }
 
         if (NetWorkUtils.isOpenNetwork()) {
@@ -201,21 +217,26 @@ public class OkHttpManager {
         String json = GsonUtils.toJson(params);
         RequestBody requestBody = RequestBody.create(JSON, json);
         Request request;
+        Request.Builder putbuilder;
         if (token == null) {
-            request = new Request.Builder()
+            putbuilder = new Request.Builder()
                     .url(url)
                     .header("Content-Type", "application/json")
-                    .addHeader(Constants.F.USER_TYPE, 1 + "")
-                    .put(requestBody)
-                    .build();
+                    .put(requestBody);
+                   if(config!=null){
+                    putbuilder.headers(config.build());
+                    }
+            request=putbuilder.build();
         } else {
-            request = new Request.Builder()
+            putbuilder = new Request.Builder()
                     .url(url)
-                    .header("token", token)
                     .addHeader("Content-Type", "application/json")
-                    .addHeader(Constants.F.USER_TYPE, 1 + "")
-                    .put(requestBody)
-                    .build();
+                    .put(requestBody);
+                    if(config!=null){
+                    config.addHeader(config.getToken(),token);
+                    putbuilder.headers(config.build());
+                    }
+                    request=putbuilder.build();
         }
 
         Log.e("url", url);
@@ -280,6 +301,7 @@ public class OkHttpManager {
 
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
+                handler.sendEmptyMessage(3);
                 final String json = response.body().string();
                 TagLog.d(json);
                 Message message = new Message();

@@ -6,13 +6,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
+import com.prarui.base.BaseActivity;
 import com.prarui.utils.transmit.EventMS;
 
 /**
  * Created by Administrator on 2018/6/28.
  */
 
-public class TwoActivity extends AppCompatActivity {
+public class TwoActivity extends BaseActivity {
    private Button send;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

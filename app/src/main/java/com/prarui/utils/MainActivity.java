@@ -15,16 +15,24 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RemoteViews;
 
+import com.prarui.base.BaseActivity;
 import com.prarui.utils.common.TagLog;
+import com.prarui.utils.common.ToastUtils;
 import com.prarui.utils.download.DownloadService;
 import com.prarui.utils.download.DownloadUtil;
+import com.prarui.utils.json.GsonUtils;
+import com.prarui.utils.network.NetWorkUtils;
+import com.prarui.utils.network.OkHttpManager;
 import com.prarui.utils.notification.NotificationUtils;
 import com.prarui.utils.timing.TimerHandler;
 import com.prarui.utils.transmit.EventMS;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.HashMap;
+
+public class MainActivity extends BaseActivity {
    private Button send,sendTwo;
    TimerHandler handler=new TimerHandler();
+   private String url="http://192.168.2.23:8080/test";
 
    @Override
     protected void onStart() {
@@ -43,23 +51,29 @@ public class MainActivity extends AppCompatActivity {
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DownloadUtil.get().starDownload("http://dl.ops.baidu.com/baidusearch_AndroidPhone_757p.apk", "/data/data/"+getPackageName(), new DownloadService.OnDownloadListener() {
-                    @Override
-                    public void onDownloadSuccess() {
-
-                    }
-
-                    @Override
-                    public void onDownloading(int progress) {
-
-                    }
-
-                    @Override
-                    public void onDownloadFailed(String e) {
-
-                    }
-                });
-
+//                OkHttpManager.with().setPostRequest("tag", url, "keee", new HashMap<String, String>(), new OkHttpManager.OnOkHttpResultCallbackListener() {
+//                    @Override
+//                    public void onLoading() {
+//
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//
+//                    }
+//
+//                    @Override
+//                    public void onError(String e) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onResponseSucceed(String json) {
+//                        String xx=json;
+//                      TagLog.d(json);
+//                    }
+//                });
+               startActivity(new Intent(MainActivity.this,TwoActivity.class));
             }
         });
         sendTwo.setOnClickListener(new View.OnClickListener() {
