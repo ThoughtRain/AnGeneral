@@ -2,8 +2,10 @@ package com.prarui.base;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
+import android.view.View;
 
 import com.prarui.utils.common.TagLog;
 import com.prarui.utils.common.ToastUtils;
@@ -13,6 +15,7 @@ import com.prarui.utils.network.OkHttpConfig;
 import com.prarui.utils.network.OkHttpManager;
 import com.prarui.utils.system.AppTaskManager;
 import com.prarui.utils.system.SharePreferenceUtils;
+import com.prarui.wigth.HmAlertDialog;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +24,7 @@ import java.util.Map;
  * Created by prarui on 2018/7/4.
  */
 
-public class ApplicationConfig extends Application {
+public class BaseApplicationConfig extends Application {
     /**
      * 初始进入app的准备；
      */
@@ -40,35 +43,26 @@ public class ApplicationConfig extends Application {
             public void onNetWorkChange(Activity activity, NetWorkUtils.NetWorkConnectType type) {
                 switch (type){
                     case NO_NET_WORK:
-                        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                        AlertDialog dialog=builder.setMessage("pc端断开连接，请及时保存编辑文档!")
-                                .setPositiveButton("确定",new DialogInterface.OnClickListener(){
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                    }
-                                }).create();
-                        dialog.getWindow();
-                        dialog.setCanceledOnTouchOutside(false);//点击屏幕不消失
-                        if (!dialog.isShowing()){//此时提示框未显示
-                            dialog.show();
-                        }
-                        break;
-                    case WIFI:
-                        ToastUtils.showToast("切换到了Wifi");
-                        break;
-                    case MOBILE_2G:
-                        ToastUtils.showToast("切换到了2G");
-                        break;
-                    case MOBILE_3G:
-                        ToastUtils.showToast("切换到了3G");
+                        showDo(activity,"没有网络");
                         break;
                     case MOBILE_4G:
-                        ToastUtils.showToast("切换到了4G");
+                        ToastUtils.showToast("连接4G");
+                        break;
+                    case WIFI:
+                        ToastUtils.showToast("连接wifi");
                         break;
                 }
 
             }
         });
 
+    }
+    private void showDo(Context context,String message){
+        HmAlertDialog.getInstance().showWindow(context, "重要提示", message, new HmAlertDialog.OnAlertDialogListener() {
+            @Override
+            public void onButtonClick(View view) {
+                ToastUtils.showToast("点击了");
+            }
+        });
     }
 }
