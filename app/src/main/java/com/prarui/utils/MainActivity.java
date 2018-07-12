@@ -1,5 +1,6 @@
 package com.prarui.utils;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.ComponentName;
@@ -16,6 +17,8 @@ import android.widget.Button;
 import android.widget.RemoteViews;
 
 import com.prarui.base.BaseActivity;
+import com.prarui.permissions.AndroidPermission;
+import com.prarui.permissions.PermissionListener;
 import com.prarui.utils.common.TagLog;
 import com.prarui.utils.common.ToastUtils;
 import com.prarui.utils.download.DownloadService;
@@ -28,6 +31,7 @@ import com.prarui.utils.timing.TimerHandler;
 import com.prarui.utils.transmit.EventMS;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends BaseActivity {
    private Button send,sendTwo;
@@ -46,6 +50,25 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         send=findViewById(R.id.send);
         sendTwo=findViewById(R.id.sendTwo);
+
+        AndroidPermission androidPermission=new AndroidPermission(MainActivity.this);
+        androidPermission.requestPermissions(new PermissionListener() {
+            @Override
+            public void onGranted() {
+
+            }
+
+            @Override
+            public void onDenied(List<String> deniedPermission) {
+              TagLog.d(deniedPermission.toString());
+            }
+
+            @Override
+            public void onShouldShowRationale(List<String> deniedPermission) {
+
+            }
+        },Manifest.permission.CAMERA, Manifest.permission.CALL_PHONE);
+
 
 
         send.setOnClickListener(new View.OnClickListener() {
