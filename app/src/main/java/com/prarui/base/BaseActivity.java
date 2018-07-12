@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.prarui.utils.system.AppTaskManager;
 
 /**
- * Created by Administrator on 2018/7/6.
+ * Created by prarui on 2018/7/6.
  */
 
 public class BaseActivity extends AppCompatActivity {

@@ -34,46 +34,42 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends BaseActivity {
-   private Button send,sendTwo;
-   TimerHandler handler=new TimerHandler();
-   private String url="http://192.168.2.23:8080/test";
+    private Button send, sendTwo;
+    TimerHandler handler = new TimerHandler();
+    private String url = "http://192.168.2.23:8080/test";
 
-   @Override
+    @Override
     protected void onStart() {
         super.onStart();
-       DownloadUtil.get().init(this);
+        DownloadUtil.get().init(this);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        send=findViewById(R.id.send);
-        sendTwo=findViewById(R.id.sendTwo);
-
-        AndroidPermission androidPermission=new AndroidPermission(MainActivity.this);
-        androidPermission.requestPermissions(new PermissionListener() {
-            @Override
-            public void onGranted() {
-
-            }
-
-            @Override
-            public void onDenied(List<String> deniedPermission) {
-              TagLog.d(deniedPermission.toString());
-            }
-
-            @Override
-            public void onShouldShowRationale(List<String> deniedPermission) {
-
-            }
-        },Manifest.permission.CAMERA, Manifest.permission.CALL_PHONE);
-
-
-
+        send = findViewById(R.id.send);
+        sendTwo = findViewById(R.id.sendTwo);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                new AndroidPermission.Builder().init(MainActivity.this).addListener(new PermissionListener() {
+                    @Override
+                    public void onGranted() {
+                        ToastUtils.showToast("全部授权成功");
+                    }
+
+                    @Override
+                    public void onDenied(List<String> deniedPermission) {
+
+                    }
+
+                    @Override
+                    public void onShouldShowRationale(List<String> deniedPermission) {
+
+                    }
+                }).requestPermissions(Manifest.permission.CAMERA, Manifest.permission.CALL_PHONE).build();
 //                OkHttpManager.with().setPostRequest("tag", url, "keee", new HashMap<String, String>(), new OkHttpManager.OnOkHttpResultCallbackListener() {
 //                    @Override
 //                    public void onLoading() {
@@ -96,13 +92,13 @@ public class MainActivity extends BaseActivity {
 //                      TagLog.d(json);
 //                    }
 //                });
-               startActivity(new Intent(MainActivity.this,TwoActivity.class));
+               // startActivity(new Intent(MainActivity.this, TwoActivity.class));
             }
         });
         sendTwo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                 handler.endTimer();
+                handler.endTimer();
             }
         });
         EventMS.getInstance().receiveData(MainActivity.class, new EventMS.OnPostEventListener() {
@@ -112,19 +108,20 @@ public class MainActivity extends BaseActivity {
                 String code = bundle.getString("code");
                 String codeTwo = bundle.getString("codeTwo");
                 String codeThere = bundle.getString("codeThere");
-                if(code!=null){
-                    Log.d("code",code);
+                if (code != null) {
+                    Log.d("code", code);
                 }
-                if(codeTwo!=null){
-                    Log.d("codeTwo",codeTwo);
+                if (codeTwo != null) {
+                    Log.d("codeTwo", codeTwo);
                 }
-                if(codeThere!=null){
-                    Log.d("codeThere",codeThere);
+                if (codeThere != null) {
+                    Log.d("codeThere", codeThere);
                 }
 
             }
         });
     }
+
     //发送自定义视图通知
     public void sendCustomViewNotification() {
         //普通notification用到的视图

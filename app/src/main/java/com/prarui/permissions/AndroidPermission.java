@@ -6,14 +6,22 @@ import android.support.v4.app.FragmentManager;
 
 /**
  * Created by prarui on 2018/7/9.
+ * 使用构建者模式生成的权限请求
+ *
+ *
+ *
  */
 
 public class AndroidPermission {
-    public  class Builder{
-        protected  final String TAG = AndroidPermission.class.getSimpleName();
+    public static class Builder {
+        private PermissionListener listener;
+        private String[] permissions;
+        private FragmentActivity activity;
+        protected final String TAG = AndroidPermission.class.getSimpleName();
         private PermissionFragment fragment;
-        public Builder(@NonNull FragmentActivity activity) {
-            fragment = getPermissionsFragment(activity);
+        public Builder init(@NonNull FragmentActivity activity) {
+            this.activity = activity;
+            return this;
         }
 
         public PermissionFragment getPermissionsFragment(@NonNull FragmentActivity activity) {
@@ -29,27 +37,24 @@ public class AndroidPermission {
 
 
         }
-        public Builder requestPermissions(String... permissions){
 
-        return this;
+        public Builder requestPermissions(String... permissions) {
+            this.permissions = permissions;
+            return this;
         }
-        public void requestPermissions(PermissionListener listener, String... permissions) {
+
+        public Builder addListener(@NonNull PermissionListener listener) {
+            this.listener = listener;
+            return this;
+        }
+
+        public void build() {
+            fragment = getPermissionsFragment(activity);
             fragment.setListener(listener);
             fragment.requestPermissions(permissions);
-
         }
     }
 
-    private static final String TAG = AndroidPermission.class.getSimpleName();
-    private PermissionFragment fragment;
-
-
-    /**
-     * 外部调用申请权限
-     *
-     * @param permissions 申请的权限
-     * @param listener    监听权限接口
-     */
 
 
 
